@@ -1,22 +1,27 @@
 #!/usr/local/bin/python3
 
 """
-Copyright 2018 Sebastian Schlegel
+MIT License
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software
-and associated documentation files (the "Software"), to deal in the Software without restriction,
-including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
+Copyright (c) 2018 Sebastian
 
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
-TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
-OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 """
 
 import random
@@ -37,40 +42,40 @@ class MainWidget:
     def __init__(self):
         self.root = Tk()
         self.root.title("Einmaleins")
-        self.root.geometry('{}x{}'.format(300, 200))
+        self.root.geometry('{}x{}'.format(400, 300))
+        self.root.config(bg='#FFFFFF')
         self.root.resizable(width=False, height=False)
 
         self.menu = Menu(self.root)
         self.root.config(menu=self.menu)
-        self.moreMenu = Menu(self.menu)
-        self.modeMenu = Menu(self.menu)
-        self.menu.add_cascade(label="Mehr", menu=self.moreMenu)
-        self.menu.add_cascade(label="Aufgaben", menu=self.modeMenu)
+        self.more_menu = Menu(self.menu)
+        self.mode_menu = Menu(self.menu)
+        self.menu.add_cascade(label="Mehr", menu=self.more_menu)
+        self.menu.add_cascade(label="Aufgaben", menu=self.mode_menu)
 
-        self.moreMenu.add_command(label="Info", command=self.show_info)
-        self.moreMenu.add_command(label="Beenden", command=sys.exit)
+        self.more_menu.add_command(label="Info", command=self.show_info)
+        self.more_menu.add_command(label="Beenden", command=sys.exit)
 
-        self.modeMenu.add_command(label="Malnehmen", command=self.set_multiply)
-        self.modeMenu.add_command(label="Teilen", command=self.set_divide)
-        self.modeMenu.add_command(label="Gemischte Aufgaben", command=self.set_random)
+        self.mode_menu.add_command(label="Malnehmen", command=self.set_multiply)
+        self.mode_menu.add_command(label="Teilen", command=self.set_divide)
+        self.mode_menu.add_command(label="Gemischte Aufgaben", command=self.set_random)
 
-        Label(self.root).pack()
+        self.score_label = Label(self.root)
+        self.score_label.config(bg='#FFFFFF')
+        self.score_label.pack(pady=15)
 
-        self.scoreLabel = Label(self.root)
-        self.scoreLabel.pack()
+        self.question_label = Label(self.root)
+        self.question_label.config(bg='#FFFFFF', font=("Sans", 16))
+        self.question_label.pack(pady=15)
 
-        Label(self.root).pack()
+        self.entry_field = Entry(self.root)
+        self.entry_field.pack(pady=15)
+        self.entry_field.config(bg='#FFFFFF', font=("Sans", 16), borderwidth=1, relief="flat", width=10)
+        self.entry_field.bind("<Return>", self.answer)
 
-        self.questionLabel = Label(self.root)
-        self.questionLabel.pack()
-
-        self.entryField = Entry(self.root)
-        self.entryField.pack()
-        self.entryField.bind("<Return>", self.answer)
-
-        Label(self.root).pack()
-        self.answerLabel = Label(self.root)
-        self.answerLabel.pack()
+        self.answer_label = Label(self.root)
+        self.answer_label.config(bg='#FFFFFF')
+        self.answer_label.pack(pady=15)
         self.update_menu()
         self.update()
         self.root.mainloop()
@@ -92,18 +97,18 @@ class MainWidget:
             else:
                 raise Exception("Unknown operator" + self.sign)
 
-            self.questionLabel.config(text="Was ist {}{}{} ?".format(self.r1, self.sign, self.r2))
-            self.scoreLabel.config(text="Richtig: {} Falsch: {}".format(self.correct, self.wrong))
+            self.question_label.config(text="Was ist {}{}{} ?".format(self.r1, self.sign, self.r2))
+            self.score_label.config(text="Richtig: {} Falsch: {}".format(self.correct, self.wrong))
             self.time = datetime.now()
 
     def answer(self, event):
-        answer = str(self.entryField.get()).strip()
+        answer = str(self.entry_field.get()).strip()
         if answer == "":
             return
         now = datetime.now()
         answer_time_seconds = (now - self.time).seconds
         if answer == str(self.solve()):
-            self.answerLabel.config(
+            self.answer_label.config(
                 text="Toll! {}{}{} ist {}. Das war richtig.\n\nDu hast {} Sekunden gebraucht.".format(str(self.r1),
                                                                                                       self.sign,
                                                                                                       str(self.r2),
@@ -111,12 +116,12 @@ class MainWidget:
                                                                                                       str(answer_time_seconds)))
             self.correct += 1
         else:
-            self.answerLabel.config(
+            self.answer_label.config(
                 text="Schade. {}{}{} ist {} und nicht {}.".format(str(self.r1), self.sign, str(self.r2), str(self.solve()), answer))
             self.wrong += 1
 
-        self.entryField.delete(0, 'end')
-        self.entryField.focus()
+        self.entry_field.delete(0, 'end')
+        self.entry_field.focus()
         self.update()
 
     def show_info(self):
@@ -169,17 +174,17 @@ class MainWidget:
 
     def update_menu(self):
         if self.sign == "x":
-            self.modeMenu.entryconfigure(1, label="✓ Malnehmen")
-            self.modeMenu.entryconfigure(2, label="Teilen")
-            self.modeMenu.entryconfigure(3, label="Gemischte Aufgaben")
+            self.mode_menu.entryconfigure(1, label="✓ Malnehmen")
+            self.mode_menu.entryconfigure(2, label="Teilen")
+            self.mode_menu.entryconfigure(3, label="Gemischte Aufgaben")
         elif self.sign == ":":
-            self.modeMenu.entryconfigure(1, label="Malnehmen")
-            self.modeMenu.entryconfigure(2, label="✓ Teilen")
-            self.modeMenu.entryconfigure(3, label="Gemischte Aufgaben")
+            self.mode_menu.entryconfigure(1, label="Malnehmen")
+            self.mode_menu.entryconfigure(2, label="✓ Teilen")
+            self.mode_menu.entryconfigure(3, label="Gemischte Aufgaben")
         if self.random_sign:
-            self.modeMenu.entryconfigure(1, label="Malnehmen")
-            self.modeMenu.entryconfigure(2, label="Teilen")
-            self.modeMenu.entryconfigure(3, label="✓ Gemischte Aufgaben")
+            self.mode_menu.entryconfigure(1, label="Malnehmen")
+            self.mode_menu.entryconfigure(2, label="Teilen")
+            self.mode_menu.entryconfigure(3, label="✓ Gemischte Aufgaben")
 
 
 if __name__ == '__main__':

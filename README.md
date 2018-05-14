@@ -1,2 +1,6 @@
 # einmaleins
-A simple mathematics learning programm
+A simple mathematics learning program.
+
+### Technology
+* python3
+* tkinter
