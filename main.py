@@ -42,7 +42,7 @@ class MainWidget:
     def __init__(self):
         self.root = Tk()
         self.root.title("Einmaleins")
-        self.root.geometry('{}x{}'.format(400, 300))
+        self.root.geometry('{}x{}'.format(400, 400))
         self.root.config(bg='#FFFFFF')
         self.root.resizable(width=False, height=False)
 
@@ -65,13 +65,22 @@ class MainWidget:
         self.score_label.pack(pady=15)
 
         self.question_label = Label(self.root)
-        self.question_label.config(bg='#FFFFFF', font=("Sans", 16))
-        self.question_label.pack(pady=15)
+        self.question_label.config(bg='#E95420', fg='#FFFFFF', font=("Sans", 16), height=3)
+        self.question_label.pack(pady=15, fill=X)
 
-        self.entry_field = Entry(self.root)
-        self.entry_field.pack(pady=15)
-        self.entry_field.config(bg='#FFFFFF', font=("Sans", 16), borderwidth=1, relief="flat", width=10)
+        submit_frame = Frame(self.root)
+        submit_frame.config(bg='#FFFFFF')
+        submit_frame.pack(padx=30, pady=15)
+
+        self.entry_field = Entry(submit_frame)
+        self.entry_field.pack(side=LEFT, padx=15, pady=15, anchor=E)
+        self.entry_field.config(bg='#FFFFFF', font=("Sans", 16), borderwidth=1, relief="flat", width=10, justify='center')
         self.entry_field.bind("<Return>", self.answer)
+
+        self.submit_button = Button(submit_frame)
+        self.submit_button.pack(side=RIGHT, padx=15, pady=15, anchor=W)
+        self.submit_button.config(text='Antworten', bg='#FFFFFF', font=("Sans", 11), borderwidth=1,
+                                  relief="flat", width=7, command=self.answer)
 
         self.answer_label = Label(self.root)
         self.answer_label.config(bg='#FFFFFF')
@@ -101,7 +110,7 @@ class MainWidget:
             self.score_label.config(text="Richtig: {} Falsch: {}".format(self.correct, self.wrong))
             self.time = datetime.now()
 
-    def answer(self, event):
+    def answer(self, event=None):
         answer = str(self.entry_field.get()).strip()
         if answer == "":
             return
