@@ -38,6 +38,7 @@ class MainWidget:
     infoWidget = None
     sign = ":"
     random_sign = True
+    last_question = ""
 
     def __init__(self):
         self.root = Tk()
@@ -103,29 +104,31 @@ class MainWidget:
         else:
             raise Exception("Unknown operator" + self.sign)
 
-        if self.r1 == r1n and self.r2 == r2n:
-            self.update()
+        if self.sign == "x":
+            self.r1 = r1n
+            self.r2 = r2n
+        elif self.sign == ":":
+            self.r1 = r1n * r2n
+            self.r2 = r2n
+        elif self.sign == "+":
+            r12 = [max(r1n, r2n) - min(r1n, r2n), min(r1n, r2n)]
+            random.shuffle(r12)
+            self.r1 = r12[0]
+            self.r2 = r12[1]
+        elif self.sign == "-":
+            self.r1 = max(r1n, r2n)
+            self.r2 = min(r1n, r2n)
         else:
-            if self.sign == "x":
-                self.r1 = r1n
-                self.r2 = r2n
-            elif self.sign == ":":
-                self.r1 = r1n * r2n
-                self.r2 = r2n
-            elif self.sign == "+":
-                r12 = [max(r1n, r2n) - min(r1n, r2n), min(r1n, r2n)]
-                random.shuffle(r12)
-                self.r1 = r12[0]
-                self.r2 = r12[1]
-            elif self.sign == "-":
-                self.r1 = max(r1n, r2n)
-                self.r2 = min(r1n, r2n)
-            else:
-                raise Exception("Unknown operator" + self.sign)
+            raise Exception("Unknown operator" + self.sign)
 
-            self.question_label.config(text="Was ist {}{}{} ?".format(self.r1, self.sign, self.r2))
-            self.score_label.config(text="Richtig: {} Falsch: {}".format(self.correct, self.wrong))
-            self.time = datetime.now()
+        question_text = "Was ist {}{}{} ?".format(self.r1, self.sign, self.r2)
+        if question_text == self.last_question:
+            self.update()
+
+        self.last_question = question_text
+        self.question_label.config(text=question_text)
+        self.score_label.config(text="Richtig: {} Falsch: {}".format(self.correct, self.wrong))
+        self.time = datetime.now()
 
     def answer(self, event=None):
         answer = str(self.entry_field.get()).strip()
