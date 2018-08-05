@@ -58,6 +58,8 @@ class MainWidget:
 
         self.mode_menu.add_command(label="Malnehmen", command=self.set_multiply)
         self.mode_menu.add_command(label="Teilen", command=self.set_divide)
+        self.mode_menu.add_command(label="Plus", command=self.set_plus)
+        self.mode_menu.add_command(label="Mnis", command=self.set_minus)
         self.mode_menu.add_command(label="Gemischte Aufgaben", command=self.set_random)
 
         self.score_label = Label(self.root)
@@ -90,19 +92,34 @@ class MainWidget:
         self.root.mainloop()
 
     def update(self):
-        r1n = random.randint(1, 10)
-        r2n = random.randint(1, 10)
+        if self.random_sign:
+            self.sign = ("x", ":", "+", "-")[random.randint(0, 3)]
+        if self.sign == "x" or self.sign == ":":
+            r1n = random.randint(1, 10)
+            r2n = random.randint(1, 10)
+        elif self.sign == "+" or self.sign == "-":
+            r1n = random.randint(0, 100)
+            r2n = random.randint(0, 100)
+        else:
+            raise Exception("Unknown operator" + self.sign)
+
         if self.r1 == r1n and self.r2 == r2n:
             self.update()
         else:
-            if self.random_sign:
-                self.sign = ("x", ":")[random.randint(0, 1)]
             if self.sign == "x":
                 self.r1 = r1n
                 self.r2 = r2n
             elif self.sign == ":":
                 self.r1 = r1n * r2n
                 self.r2 = r2n
+            elif self.sign == "+":
+                r12 = [max(r1n, r2n) - min(r1n, r2n), min(r1n, r2n)]
+                random.shuffle(r12)
+                self.r1 = r12[0]
+                self.r2 = r12[1]
+            elif self.sign == "-":
+                self.r1 = max(r1n, r2n)
+                self.r2 = min(r1n, r2n)
             else:
                 raise Exception("Unknown operator" + self.sign)
 
@@ -161,6 +178,10 @@ class MainWidget:
             return self.r1 * self.r2
         elif self.sign == ":":
             return int(self.r1 / self.r2)
+        elif self.sign == "+":
+            return self.r1 + self.r2
+        elif self.sign == "-":
+            return self.r1 - self.r2
         else:
             raise Exception("Unknown operator" + self.sign)
 
@@ -176,6 +197,18 @@ class MainWidget:
         self.update_menu()
         self.update()
 
+    def set_plus(self):
+        self.sign = "+"
+        self.random_sign = False
+        self.update_menu()
+        self.update()
+
+    def set_minus(self):
+        self.sign = "-"
+        self.random_sign = False
+        self.update_menu()
+        self.update()
+
     def set_random(self):
         self.random_sign = True
         self.update_menu()
@@ -185,15 +218,33 @@ class MainWidget:
         if self.sign == "x":
             self.mode_menu.entryconfigure(1, label="✓ Malnehmen")
             self.mode_menu.entryconfigure(2, label="Teilen")
-            self.mode_menu.entryconfigure(3, label="Gemischte Aufgaben")
+            self.mode_menu.entryconfigure(3, label="Plus")
+            self.mode_menu.entryconfigure(4, label="Minus")
+            self.mode_menu.entryconfigure(5, label="Gemischte Aufgaben")
         elif self.sign == ":":
             self.mode_menu.entryconfigure(1, label="Malnehmen")
             self.mode_menu.entryconfigure(2, label="✓ Teilen")
-            self.mode_menu.entryconfigure(3, label="Gemischte Aufgaben")
+            self.mode_menu.entryconfigure(3, label="Plus")
+            self.mode_menu.entryconfigure(4, label="Minus")
+            self.mode_menu.entryconfigure(5, label="Gemischte Aufgaben")
+        elif self.sign == "+":
+            self.mode_menu.entryconfigure(1, label="Malnehmen")
+            self.mode_menu.entryconfigure(2, label="Teilen")
+            self.mode_menu.entryconfigure(3, label="✓ Plus")
+            self.mode_menu.entryconfigure(4, label="Minus")
+            self.mode_menu.entryconfigure(5, label="Gemischte Aufgaben")
+        elif self.sign == "-":
+            self.mode_menu.entryconfigure(1, label="Malnehmen")
+            self.mode_menu.entryconfigure(2, label="Teilen")
+            self.mode_menu.entryconfigure(3, label="Plus")
+            self.mode_menu.entryconfigure(4, label="✓ Minus")
+            self.mode_menu.entryconfigure(5, label="Gemischte Aufgaben")
         if self.random_sign:
             self.mode_menu.entryconfigure(1, label="Malnehmen")
             self.mode_menu.entryconfigure(2, label="Teilen")
-            self.mode_menu.entryconfigure(3, label="✓ Gemischte Aufgaben")
+            self.mode_menu.entryconfigure(3, label="Plus")
+            self.mode_menu.entryconfigure(4, label="Minus")
+            self.mode_menu.entryconfigure(5, label="✓ Gemischte Aufgaben")
 
 
 if __name__ == '__main__':
