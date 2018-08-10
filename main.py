@@ -47,6 +47,11 @@ class MainWidget:
         self.root.config(bg='#FFFFFF')
         self.root.resizable(width=False, height=False)
 
+        self.ask_multiplication = BooleanVar(value=True)
+        self.ask_division = BooleanVar(value=True)
+        self.ask_plus = BooleanVar(value=True)
+        self.ask_minus = BooleanVar(value=True)
+
         self.menu = Menu(self.root)
         self.root.config(menu=self.menu)
         self.more_menu = Menu(self.menu)
@@ -57,11 +62,10 @@ class MainWidget:
         self.more_menu.add_command(label="Info", command=self.show_info)
         self.more_menu.add_command(label="Beenden", command=sys.exit)
 
-        self.mode_menu.add_command(label="Malnehmen", command=self.set_multiply)
-        self.mode_menu.add_command(label="Teilen", command=self.set_divide)
-        self.mode_menu.add_command(label="Plus", command=self.set_plus)
-        self.mode_menu.add_command(label="Mnis", command=self.set_minus)
-        self.mode_menu.add_command(label="Gemischte Aufgaben", command=self.set_random)
+        self.mode_menu.add_checkbutton(label="Malnehmen", onvalue=True, offvalue=False, variable=self.ask_multiplication)
+        self.mode_menu.add_checkbutton(label="Teilen", onvalue=True, offvalue=False, variable=self.ask_division)
+        self.mode_menu.add_checkbutton(label="Plus", onvalue=True, offvalue=False, variable=self.ask_plus)
+        self.mode_menu.add_checkbutton(label="Minus", onvalue=True, offvalue=False, variable=self.ask_minus)
 
         self.score_label = Label(self.root)
         self.score_label.config(bg='#FFFFFF')
@@ -88,13 +92,26 @@ class MainWidget:
         self.answer_label = Label(self.root)
         self.answer_label.config(bg='#FFFFFF')
         self.answer_label.pack(pady=15)
-        self.update_menu()
         self.update()
         self.root.mainloop()
 
     def update(self):
-        if self.random_sign:
-            self.sign = ("x", ":", "+", "-")[random.randint(0, 3)]
+        signs = []
+        if self.ask_multiplication.get():
+            signs.append("x")
+        if self.ask_division.get():
+            signs.append(":")
+        if self.ask_plus.get():
+            signs.append("+")
+        if self.ask_minus.get():
+            signs.append("-")
+        if len(signs) == 0:
+            self.ask_multiplication.set(True)
+            self.ask_division.set(True)
+            self.ask_plus.set(True)
+            self.ask_minus.set(True)
+            self.update()
+        self.sign = signs[random.randint(0, len(signs) - 1)]
         if self.sign == "x" or self.sign == ":":
             r1n = random.randint(1, 10)
             r2n = random.randint(1, 10)
@@ -187,67 +204,6 @@ class MainWidget:
             return self.r1 - self.r2
         else:
             raise Exception("Unknown operator" + self.sign)
-
-    def set_multiply(self):
-        self.sign = "x"
-        self.random_sign = False
-        self.update_menu()
-        self.update()
-
-    def set_divide(self):
-        self.sign = ":"
-        self.random_sign = False
-        self.update_menu()
-        self.update()
-
-    def set_plus(self):
-        self.sign = "+"
-        self.random_sign = False
-        self.update_menu()
-        self.update()
-
-    def set_minus(self):
-        self.sign = "-"
-        self.random_sign = False
-        self.update_menu()
-        self.update()
-
-    def set_random(self):
-        self.random_sign = True
-        self.update_menu()
-        self.update()
-
-    def update_menu(self):
-        if self.sign == "x":
-            self.mode_menu.entryconfigure(1, label="✓ Malnehmen")
-            self.mode_menu.entryconfigure(2, label="Teilen")
-            self.mode_menu.entryconfigure(3, label="Plus")
-            self.mode_menu.entryconfigure(4, label="Minus")
-            self.mode_menu.entryconfigure(5, label="Gemischte Aufgaben")
-        elif self.sign == ":":
-            self.mode_menu.entryconfigure(1, label="Malnehmen")
-            self.mode_menu.entryconfigure(2, label="✓ Teilen")
-            self.mode_menu.entryconfigure(3, label="Plus")
-            self.mode_menu.entryconfigure(4, label="Minus")
-            self.mode_menu.entryconfigure(5, label="Gemischte Aufgaben")
-        elif self.sign == "+":
-            self.mode_menu.entryconfigure(1, label="Malnehmen")
-            self.mode_menu.entryconfigure(2, label="Teilen")
-            self.mode_menu.entryconfigure(3, label="✓ Plus")
-            self.mode_menu.entryconfigure(4, label="Minus")
-            self.mode_menu.entryconfigure(5, label="Gemischte Aufgaben")
-        elif self.sign == "-":
-            self.mode_menu.entryconfigure(1, label="Malnehmen")
-            self.mode_menu.entryconfigure(2, label="Teilen")
-            self.mode_menu.entryconfigure(3, label="Plus")
-            self.mode_menu.entryconfigure(4, label="✓ Minus")
-            self.mode_menu.entryconfigure(5, label="Gemischte Aufgaben")
-        if self.random_sign:
-            self.mode_menu.entryconfigure(1, label="Malnehmen")
-            self.mode_menu.entryconfigure(2, label="Teilen")
-            self.mode_menu.entryconfigure(3, label="Plus")
-            self.mode_menu.entryconfigure(4, label="Minus")
-            self.mode_menu.entryconfigure(5, label="✓ Gemischte Aufgaben")
 
 
 if __name__ == '__main__':
