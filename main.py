@@ -27,6 +27,7 @@ SOFTWARE.
 import random
 from datetime import datetime
 from tkinter import *
+from operations import *
 
 
 class MainWidget:
@@ -138,7 +139,7 @@ class MainWidget:
         else:
             raise Exception("Unknown operator" + self.sign)
 
-        question_text = "Was ist {}{}{} ?".format(self.r1, self.sign, self.r2)
+        question_text = self.get_question()
         if question_text == self.last_question:
             self.update()
 
@@ -155,20 +156,21 @@ class MainWidget:
         answer_time_seconds = (now - self.time).seconds
         if answer == str(self.solve()):
             self.answer_label.config(
-                text="Toll! {}{}{} ist {}. Das war richtig.\n\nDu hast {} Sekunden gebraucht.".format(str(self.r1),
-                                                                                                      self.sign,
-                                                                                                      str(self.r2),
+                text="Toll! Die Lösung für {} ist {}. Das war richtig.\n\nDu hast {} Sekunden gebraucht.".format(self.get_question(),
                                                                                                       str(self.solve()),
                                                                                                       str(answer_time_seconds)))
             self.correct += 1
         else:
             self.answer_label.config(
-                text="Schade. {}{}{} ist {} und nicht {}.".format(str(self.r1), self.sign, str(self.r2), str(self.solve()), answer))
+                text="Schade. Die Lösung für {} ist {} und nicht {}.".format(self.get_question(), str(self.solve()), answer))
             self.wrong += 1
 
         self.entry_field.delete(0, 'end')
         self.entry_field.focus()
         self.update()
+
+    def get_question(self):
+        return "{}{}{}".format(str(self.r1), self.sign, str(self.r2))
 
     def show_info(self):
         if self.infoWidget is None:
