@@ -124,8 +124,8 @@ class MainWidget:
             r1n = random.randint(1, 10)
             r2n = random.randint(1, 10)
         elif self.sign == "+" or self.sign == "-":
-            r1n = random.randint(0, 100)
-            r2n = random.randint(0, 100)
+            r1n = random.randint(0, 1000)
+            r2n = random.randint(0, 1000)
         elif self.sign == "round":
             r1n = random.randint(0, 999)
             r2n = random.randint(1, 2) * -1
