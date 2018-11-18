@@ -27,9 +27,9 @@ SOFTWARE.
 import random
 from datetime import datetime
 from tkinter import *
-from operations import *
 
 
+# noinspection SpellCheckingInspection
 class MainWidget:
     r1 = 0
     r2 = 0
@@ -44,7 +44,7 @@ class MainWidget:
     def __init__(self):
         self.root = Tk()
         self.root.title("Einmaleins")
-        self.root.geometry('{}x{}'.format(400, 400))
+        self.root.geometry('{}x{}'.format(600, 400))
         self.root.config(bg='#FFFFFF')
         self.root.resizable(width=False, height=False)
 
@@ -52,6 +52,7 @@ class MainWidget:
         self.ask_division = BooleanVar(value=True)
         self.ask_plus = BooleanVar(value=True)
         self.ask_minus = BooleanVar(value=True)
+        self.ask_round = BooleanVar(value=True)
 
         self.menu = Menu(self.root)
         self.root.config(menu=self.menu)
@@ -63,10 +64,12 @@ class MainWidget:
         self.more_menu.add_command(label="Info", command=self.show_info)
         self.more_menu.add_command(label="Beenden", command=sys.exit)
 
-        self.mode_menu.add_checkbutton(label="Malnehmen", onvalue=True, offvalue=False, variable=self.ask_multiplication)
+        self.mode_menu.add_checkbutton(label="Malnehmen", onvalue=True, offvalue=False,
+                                       variable=self.ask_multiplication)
         self.mode_menu.add_checkbutton(label="Teilen", onvalue=True, offvalue=False, variable=self.ask_division)
         self.mode_menu.add_checkbutton(label="Plus", onvalue=True, offvalue=False, variable=self.ask_plus)
         self.mode_menu.add_checkbutton(label="Minus", onvalue=True, offvalue=False, variable=self.ask_minus)
+        self.mode_menu.add_checkbutton(label="Runden", onvalue=True, offvalue=False, variable=self.ask_round)
 
         self.score_label = Label(self.root)
         self.score_label.config(bg='#FFFFFF')
@@ -82,7 +85,8 @@ class MainWidget:
 
         self.entry_field = Entry(submit_frame)
         self.entry_field.pack(side=LEFT, padx=15, pady=15, anchor=E)
-        self.entry_field.config(bg='#FFFFFF', font=("Sans", 16), borderwidth=1, relief="flat", width=10, justify='center')
+        self.entry_field.config(bg='#FFFFFF', font=("Sans", 16), borderwidth=1, relief="flat", width=10,
+                                justify='center')
         self.entry_field.bind("<Return>", self.answer)
 
         self.submit_button = Button(submit_frame)
@@ -106,11 +110,14 @@ class MainWidget:
             signs.append("+")
         if self.ask_minus.get():
             signs.append("-")
+        if self.ask_round.get():
+            signs.append("round")
         if len(signs) == 0:
             self.ask_multiplication.set(True)
             self.ask_division.set(True)
             self.ask_plus.set(True)
             self.ask_minus.set(True)
+            self.ask_round.set(True)
             self.update()
         self.sign = signs[random.randint(0, len(signs) - 1)]
         if self.sign == "x" or self.sign == ":":
@@ -119,10 +126,13 @@ class MainWidget:
         elif self.sign == "+" or self.sign == "-":
             r1n = random.randint(0, 100)
             r2n = random.randint(0, 100)
+        elif self.sign == "round":
+            r1n = random.randint(0, 999)
+            r2n = random.randint(1, 2) * -1
         else:
             raise Exception("Unknown operator" + self.sign)
 
-        if self.sign == "x":
+        if self.sign == "x" or self.sign == "round":
             self.r1 = r1n
             self.r2 = r2n
         elif self.sign == ":":
@@ -156,13 +166,16 @@ class MainWidget:
         answer_time_seconds = (now - self.time).seconds
         if answer == str(self.solve()):
             self.answer_label.config(
-                text="Toll! Die Lösung für {} ist {}. Das war richtig.\n\nDu hast {} Sekunden gebraucht.".format(self.get_question(),
-                                                                                                      str(self.solve()),
-                                                                                                      str(answer_time_seconds)))
+                text="Toll! Die Lösung für '{}' ist {}.\n\nDas war richtig. Du hast {} Sekunden gebraucht.".format(
+                    self.get_question(),
+                    str(self.solve()),
+                    str(answer_time_seconds)))
             self.correct += 1
         else:
             self.answer_label.config(
-                text="Schade. Die Lösung für {} ist {} und nicht {}.".format(self.get_question(), str(self.solve()), answer))
+                text="Schade. Die Lösung für '{}' ist {} und nicht {}.".format(self.get_question(),
+                                                                               str(self.solve()),
+                                                                               answer))
             self.wrong += 1
 
         self.entry_field.delete(0, 'end')
@@ -170,7 +183,12 @@ class MainWidget:
         self.update()
 
     def get_question(self):
-        return "{}{}{}".format(str(self.r1), self.sign, str(self.r2))
+        if self.sign == "round" and self.r2 == -1:
+            return "{} auf den nächsten Zehner runden".format(self.r1)
+        elif self.sign == "round" and self.r2 == -2:
+            return "{} auf den nächsten Hunderter runden".format(self.r1)
+        else:
+            return "{} {} {}".format(str(self.r1), self.sign, str(self.r2))
 
     def show_info(self):
         if self.infoWidget is None:
@@ -179,7 +197,8 @@ class MainWidget:
             self.infoWidget.geometry('{}x{}'.format(400, 400))
             self.infoWidget.protocol("WM_DELETE_WINDOW", self.delete_info)
             self.infoWidget.resizable(width=False, height=False)
-            info_label = Label(self.infoWidget, text="\nEin mal Eins Lernprogramm\nSebastian Schlegel 2018\nFür meine Maja\n")
+            info_label = Label(self.infoWidget,
+                               text="\nEin mal Eins Lernprogramm\nSebastian Schlegel 2018\nFür meine Maja\n")
             info_label.pack()
             licence_field = Text(self.infoWidget)
             scroll = Scrollbar(self.infoWidget, command=licence_field.yview)
@@ -197,13 +216,15 @@ class MainWidget:
 
     def solve(self):
         if self.sign == "x":
-            return self.r1 * self.r2
+            return int(self.r1 * self.r2)
         elif self.sign == ":":
             return int(self.r1 / self.r2)
         elif self.sign == "+":
-            return self.r1 + self.r2
+            return int(self.r1 + self.r2)
         elif self.sign == "-":
-            return self.r1 - self.r2
+            return int(self.r1 - self.r2)
+        elif self.sign == "round":
+            return int(round(self.r1, self.r2))
         else:
             raise Exception("Unknown operator" + self.sign)
 
