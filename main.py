@@ -3,7 +3,7 @@
 """
 MIT License
 
-Copyright (c) 2018 Sebastian
+Copyright (c) 2018 - 2019 Sebastian
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -53,6 +53,7 @@ class MainWidget:
         self.ask_plus = BooleanVar(value=True)
         self.ask_minus = BooleanVar(value=True)
         self.ask_round = BooleanVar(value=True)
+        self.ask_series = BooleanVar(value=True)
 
         self.menu = Menu(self.root)
         self.root.config(menu=self.menu)
@@ -70,6 +71,7 @@ class MainWidget:
         self.mode_menu.add_checkbutton(label="Plus", onvalue=True, offvalue=False, variable=self.ask_plus)
         self.mode_menu.add_checkbutton(label="Minus", onvalue=True, offvalue=False, variable=self.ask_minus)
         self.mode_menu.add_checkbutton(label="Runden", onvalue=True, offvalue=False, variable=self.ask_round)
+        self.mode_menu.add_checkbutton(label="Zahlenreihen", onvalue=True, offvalue=False, variable=self.ask_series)
 
         self.score_label = Label(self.root)
         self.score_label.config(bg='#FFFFFF')
@@ -112,12 +114,15 @@ class MainWidget:
             signs.append("-")
         if self.ask_round.get():
             signs.append("round")
+        if self.ask_series.get():
+            signs.append("series")
         if len(signs) == 0:
             self.ask_multiplication.set(True)
             self.ask_division.set(True)
             self.ask_plus.set(True)
             self.ask_minus.set(True)
             self.ask_round.set(True)
+            self.ask_series.set(True)
             self.update()
         self.sign = signs[random.randint(0, len(signs) - 1)]
         if self.sign == "x" or self.sign == ":":
@@ -129,10 +134,13 @@ class MainWidget:
         elif self.sign == "round":
             r1n = random.randint(0, 999)
             r2n = random.randint(1, 2) * -1
+        elif self.sign == "series":
+            r1n = random.randint(100, 899)
+            r2n = random.randint(1, 9) * random.choice([1, -1])
         else:
             raise Exception("Unknown operator" + self.sign)
 
-        if self.sign == "x" or self.sign == "round":
+        if self.sign == "x" or self.sign == "round" or self.sign == "series":
             self.r1 = r1n
             self.r2 = r2n
         elif self.sign == ":":
@@ -158,23 +166,25 @@ class MainWidget:
         self.score_label.config(text="Richtig: {} Falsch: {}".format(self.correct, self.wrong))
         self.time = datetime.now()
 
+    # noinspection PyUnusedLocal
     def answer(self, event=None):
         answer = str(self.entry_field.get()).strip()
         if answer == "":
             return
         now = datetime.now()
         answer_time_seconds = (now - self.time).seconds
-        if answer == str(self.solve()):
+        solve = self.solve()
+        if answer == str(solve):
             self.answer_label.config(
                 text="Toll! Die Lösung für '{}' ist {}.\n\nDas war richtig. Du hast {} Sekunden gebraucht.".format(
                     self.get_question(),
-                    str(self.solve()),
+                    str(solve),
                     str(answer_time_seconds)))
             self.correct += 1
         else:
             self.answer_label.config(
                 text="Schade. Die Lösung für '{}' ist {} und nicht {}.".format(self.get_question(),
-                                                                               str(self.solve()),
+                                                                               str(solve),
                                                                                answer))
             self.wrong += 1
 
@@ -187,6 +197,9 @@ class MainWidget:
             return "{} auf den nächsten Zehner runden".format(self.r1)
         elif self.sign == "round" and self.r2 == -2:
             return "{} auf den nächsten Hunderter runden".format(self.r1)
+        elif self.sign == "series":
+            return "{} , {} , {} , {} , ?".format(self.r1 - 4 * self.r2, self.r1 - 3 * self.r2, self.r1 - 2 * self.r2,
+                                                  self.r1 - 1 * self.r2)
         else:
             return "{} {} {}".format(str(self.r1), self.sign, str(self.r2))
 
@@ -225,6 +238,8 @@ class MainWidget:
             return int(self.r1 - self.r2)
         elif self.sign == "round":
             return int(round(self.r1, self.r2))
+        elif self.sign == "series":
+            return self.r1
         else:
             raise Exception("Unknown operator" + self.sign)
 
