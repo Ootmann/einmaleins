@@ -24,6 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import decimal
 import random
 from datetime import datetime
 from tkinter import *
@@ -48,12 +49,13 @@ class MainWidget:
         self.root.config(bg='#FFFFFF')
         self.root.resizable(width=False, height=False)
 
-        self.ask_multiplication = BooleanVar(value=True)
-        self.ask_division = BooleanVar(value=True)
-        self.ask_plus = BooleanVar(value=True)
-        self.ask_minus = BooleanVar(value=True)
-        self.ask_round = BooleanVar(value=True)
-        self.ask_series = BooleanVar(value=True)
+        self.ask_multiplication = BooleanVar(value=False)
+        self.ask_division = BooleanVar(value=False)
+        self.ask_plus = BooleanVar(value=False)
+        self.ask_minus = BooleanVar(value=False)
+        self.ask_round = BooleanVar(value=False)
+        self.ask_series = BooleanVar(value=False)
+        self.ask_money_add = BooleanVar(value=True)
 
         self.menu = Menu(self.root)
         self.root.config(menu=self.menu)
@@ -72,6 +74,7 @@ class MainWidget:
         self.mode_menu.add_checkbutton(label="Minus", onvalue=True, offvalue=False, variable=self.ask_minus)
         self.mode_menu.add_checkbutton(label="Runden", onvalue=True, offvalue=False, variable=self.ask_round)
         self.mode_menu.add_checkbutton(label="Zahlenreihen", onvalue=True, offvalue=False, variable=self.ask_series)
+        self.mode_menu.add_checkbutton(label="Geld addieren", onvalue=True, offvalue=False, variable=self.ask_money_add)
 
         self.score_label = Label(self.root)
         self.score_label.config(bg='#FFFFFF')
@@ -116,6 +119,8 @@ class MainWidget:
             signs.append("round")
         if self.ask_series.get():
             signs.append("series")
+        if self.ask_money_add.get():
+            signs.append("money_add")
         if len(signs) == 0:
             self.ask_multiplication.set(True)
             self.ask_division.set(True)
@@ -123,6 +128,7 @@ class MainWidget:
             self.ask_minus.set(True)
             self.ask_round.set(True)
             self.ask_series.set(True)
+            self.ask_money_add.set(True)
             self.update()
         self.sign = signs[random.randint(0, len(signs) - 1)]
         if self.sign == "x" or self.sign == ":":
@@ -137,10 +143,15 @@ class MainWidget:
         elif self.sign == "series":
             r1n = random.randint(100, 899)
             r2n = random.randint(1, 9) * random.choice([1, -1])
+        elif self.sign == "money_add":
+            r1n = decimal.Decimal(
+                str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
+            r2n = decimal.Decimal(
+                str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
         else:
             raise Exception("Unknown operator" + self.sign)
 
-        if self.sign == "x" or self.sign == "round" or self.sign == "series":
+        if self.sign == "x" or self.sign == "round" or self.sign == "series" or self.sign == "money_add":
             self.r1 = r1n
             self.r2 = r2n
         elif self.sign == ":":
@@ -168,13 +179,23 @@ class MainWidget:
 
     # noinspection PyUnusedLocal
     def answer(self, event=None):
-        answer = str(self.entry_field.get()).strip()
+        answer = str(self.entry_field.get())
+        answer = re.sub('[^0-9,.]', '', answer)
+        answer = answer.replace(".", ",")
+        answer = answer.strip()
+
         if answer == "":
             return
+
         now = datetime.now()
         answer_time_seconds = (now - self.time).seconds
+
         solve = self.solve()
-        if answer == str(solve):
+        solve_comparision = re.sub('[^0-9,.]', '', str(solve))
+        solve_comparision = solve_comparision.replace(".", ",")
+        solve_comparision = solve_comparision.strip()
+
+        if answer == solve_comparision:
             self.answer_label.config(
                 text="Toll! Die Lösung für '{}' ist {}.\n\nDas war richtig. Du hast {} Sekunden gebraucht.".format(
                     self.get_question(),
@@ -183,9 +204,8 @@ class MainWidget:
             self.correct += 1
         else:
             self.answer_label.config(
-                text="Schade. Die Lösung für '{}' ist {} und nicht {}.".format(self.get_question(),
-                                                                               str(solve),
-                                                                               answer))
+                text="Schade. Die Lösung für '{}' ist {} und nicht {}.\n\nTipp: Du kannst schwere Aufgaben erst auf einem Blatt Papier lösen.".format(
+                         self.get_question(), str(solve), answer))
             self.wrong += 1
 
         self.entry_field.delete(0, 'end')
@@ -200,6 +220,9 @@ class MainWidget:
         elif self.sign == "series":
             return "{} , {} , {} , {} , ?".format(self.r1 - 4 * self.r2, self.r1 - 3 * self.r2, self.r1 - 2 * self.r2,
                                                   self.r1 - 1 * self.r2)
+        elif self.sign == "money_add":
+            return "{} € + {} €".format(self.r1, self.r2).replace('.', ',')
+
         else:
             return "{} {} {}".format(str(self.r1), self.sign, str(self.r2))
 
@@ -211,7 +234,7 @@ class MainWidget:
             self.infoWidget.protocol("WM_DELETE_WINDOW", self.delete_info)
             self.infoWidget.resizable(width=False, height=False)
             info_label = Label(self.infoWidget,
-                               text="\nEin mal Eins Lernprogramm\nSebastian Schlegel 2018\nFür meine Maja\n")
+                               text="\nEin mal Eins Lernprogramm\nSebastian Schlegel 2018-2019\nFür meine Maja\n")
             info_label.pack()
             licence_field = Text(self.infoWidget)
             scroll = Scrollbar(self.infoWidget, command=licence_field.yview)
@@ -240,9 +263,12 @@ class MainWidget:
             return int(round(self.r1, self.r2))
         elif self.sign == "series":
             return self.r1
+        elif self.sign == "money_add":
+            return '{0:.2f}'.format(self.r1 + self.r2).replace('.', ',') + " €"
         else:
             raise Exception("Unknown operator" + self.sign)
 
 
 if __name__ == '__main__':
+    decimal.getcontext().prec = 6
     w = MainWidget()
