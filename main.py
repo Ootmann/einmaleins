@@ -24,6 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import colorsys
 import decimal
 import random
 from datetime import datetime
@@ -51,13 +52,13 @@ class MainWidget:
 
         self.euro_notes = (5, 10, 20, 50, 100, 200, 500)
 
-        self.ask_multiplication = BooleanVar(value=False)
-        self.ask_division = BooleanVar(value=False)
-        self.ask_plus = BooleanVar(value=False)
-        self.ask_minus = BooleanVar(value=False)
-        self.ask_round = BooleanVar(value=False)
-        self.ask_series = BooleanVar(value=False)
-        self.ask_money_add = BooleanVar(value=False)
+        self.ask_multiplication = BooleanVar(value=True)
+        self.ask_division = BooleanVar(value=True)
+        self.ask_plus = BooleanVar(value=True)
+        self.ask_minus = BooleanVar(value=True)
+        self.ask_round = BooleanVar(value=True)
+        self.ask_series = BooleanVar(value=True)
+        self.ask_money_add = BooleanVar(value=True)
         self.ask_money_rest = BooleanVar(value=True)
 
         self.menu = Menu(self.root)
@@ -94,7 +95,7 @@ class MainWidget:
 
         self.entry_field = Entry(submit_frame)
         self.entry_field.pack(side=LEFT, padx=15, pady=15, anchor=E)
-        self.entry_field.config(bg='#FFFFFF', font=("Sans", 16), borderwidth=1, relief="flat", width=10,
+        self.entry_field.config(bg='#F0F0F0', font=("Sans", 16), borderwidth=1, relief="flat", width=10,
                                 justify='center')
         self.entry_field.bind("<Return>", self.answer)
 
@@ -151,10 +152,13 @@ class MainWidget:
             r1n = random.randint(100, 899)
             r2n = random.randint(1, 9) * random.choice([1, -1])
         elif self.sign == "money_add":
-            r1n = decimal.Decimal(str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
-            r2n = decimal.Decimal(str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
+            r1n = decimal.Decimal(
+                str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
+            r2n = decimal.Decimal(
+                str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
         elif self.sign == "money_rest":
-            r1n = decimal.Decimal(str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
+            r1n = decimal.Decimal(
+                str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
             r2n = 0
             for note in self.euro_notes:
                 if note > r1n:
@@ -186,8 +190,12 @@ class MainWidget:
         if question_text == self.last_question:
             self.update()
 
+        rgb = colorsys.hsv_to_rgb(random.randint(0, 1000) / 1000, 86.3 / 100, 91.4 / 100)
+        hex_color = '%02x%02x%02x' % (int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
+
         self.last_question = question_text
         self.question_label.config(text=question_text)
+        self.question_label.config(bg="#" + hex_color)
         self.score_label.config(text="Richtig: {} Falsch: {}".format(self.correct, self.wrong))
         self.time = datetime.now()
 
@@ -219,7 +227,7 @@ class MainWidget:
         else:
             self.answer_label.config(
                 text="Schade. Die Lösung für '{}' ist {} und nicht {}.\n\nTipp: Du kannst schwere Aufgaben erst auf einem Blatt Papier lösen.".format(
-                         self.get_question(), str(solve), answer))
+                    self.get_question(), str(solve), answer))
             self.wrong += 1
 
         self.entry_field.delete(0, 'end')
