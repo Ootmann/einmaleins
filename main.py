@@ -35,13 +35,13 @@ from tkinter import *
 class MainWidget:
     r1 = 0
     r2 = 0
-    correct = 0
-    wrong = 0
     time = datetime.now()
     infoWidget = None
     sign = ":"
     random_sign = True
     last_question = ""
+    euro_notes = (5, 10, 20, 50, 100, 200, 500)
+    stats = {}
 
     def __init__(self):
         self.root = Tk()
@@ -49,8 +49,6 @@ class MainWidget:
         self.root.geometry('{}x{}'.format(600, 400))
         self.root.config(bg='#FFFFFF')
         self.root.resizable(width=False, height=False)
-
-        self.euro_notes = (5, 10, 20, 50, 100, 200, 500)
 
         self.ask_multiplication = BooleanVar(value=True)
         self.ask_division = BooleanVar(value=True)
@@ -196,7 +194,8 @@ class MainWidget:
         self.last_question = question_text
         self.question_label.config(text=question_text)
         self.question_label.config(bg="#" + hex_color)
-        self.score_label.config(text="Richtig: {} Falsch: {}".format(self.correct, self.wrong))
+        correct, wrong = self.get_total_stats()
+        self.score_label.config(text="Richtig: {} Falsch: {}".format(correct, wrong))
         self.time = datetime.now()
 
     # noinspection PyUnusedLocal
@@ -223,12 +222,12 @@ class MainWidget:
                     self.get_question(),
                     str(solve),
                     str(answer_time_seconds)))
-            self.correct += 1
+            self.add_stat_correct()
         else:
             self.answer_label.config(
                 text="Schade. Die Lösung für '{}' ist {} und nicht {}.\n\nTipp: Du kannst schwere Aufgaben erst auf einem Blatt Papier lösen.".format(
                     self.get_question(), str(solve), answer))
-            self.wrong += 1
+            self.add_stat_wrong()
 
         self.entry_field.delete(0, 'end')
         self.entry_field.focus()
@@ -273,6 +272,27 @@ class MainWidget:
         if self.infoWidget is not None:
             self.infoWidget.destroy()
             self.infoWidget = None
+
+    def add_stat_correct(self):
+        try:
+            self.stats[self.sign]
+        except KeyError:
+            self.stats[self.sign] = [0, 0]
+        self.stats[self.sign][0] += 1
+
+    def add_stat_wrong(self):
+        try:
+            self.stats[self.sign]
+        except KeyError:
+            self.stats[self.sign] = [0, 0]
+        self.stats[self.sign][1] += 1
+
+    def get_total_stats(self):
+        result = [0, 0]
+        for stat in self.stats.values():
+            result[0] += stat[0]
+            result[1] += stat[1]
+        return result
 
     def solve(self):
         if self.sign == "x":
