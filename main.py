@@ -49,13 +49,16 @@ class MainWidget:
         self.root.config(bg='#FFFFFF')
         self.root.resizable(width=False, height=False)
 
+        self.euro_notes = (5, 10, 20, 50, 100, 200, 500)
+
         self.ask_multiplication = BooleanVar(value=False)
         self.ask_division = BooleanVar(value=False)
         self.ask_plus = BooleanVar(value=False)
         self.ask_minus = BooleanVar(value=False)
         self.ask_round = BooleanVar(value=False)
         self.ask_series = BooleanVar(value=False)
-        self.ask_money_add = BooleanVar(value=True)
+        self.ask_money_add = BooleanVar(value=False)
+        self.ask_money_rest = BooleanVar(value=True)
 
         self.menu = Menu(self.root)
         self.root.config(menu=self.menu)
@@ -75,6 +78,7 @@ class MainWidget:
         self.mode_menu.add_checkbutton(label="Runden", onvalue=True, offvalue=False, variable=self.ask_round)
         self.mode_menu.add_checkbutton(label="Zahlenreihen", onvalue=True, offvalue=False, variable=self.ask_series)
         self.mode_menu.add_checkbutton(label="Geld addieren", onvalue=True, offvalue=False, variable=self.ask_money_add)
+        self.mode_menu.add_checkbutton(label="Geld übrig", onvalue=True, offvalue=False, variable=self.ask_money_rest)
 
         self.score_label = Label(self.root)
         self.score_label.config(bg='#FFFFFF')
@@ -121,6 +125,8 @@ class MainWidget:
             signs.append("series")
         if self.ask_money_add.get():
             signs.append("money_add")
+        if self.ask_money_rest.get():
+            signs.append("money_rest")
         if len(signs) == 0:
             self.ask_multiplication.set(True)
             self.ask_division.set(True)
@@ -129,6 +135,7 @@ class MainWidget:
             self.ask_round.set(True)
             self.ask_series.set(True)
             self.ask_money_add.set(True)
+            self.ask_money_rest.set(True)
             self.update()
         self.sign = signs[random.randint(0, len(signs) - 1)]
         if self.sign == "x" or self.sign == ":":
@@ -144,14 +151,21 @@ class MainWidget:
             r1n = random.randint(100, 899)
             r2n = random.randint(1, 9) * random.choice([1, -1])
         elif self.sign == "money_add":
-            r1n = decimal.Decimal(
-                str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
-            r2n = decimal.Decimal(
-                str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
+            r1n = decimal.Decimal(str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
+            r2n = decimal.Decimal(str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
+        elif self.sign == "money_rest":
+            r1n = decimal.Decimal(str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
+            r2n = 0
+            for note in self.euro_notes:
+                if note > r1n:
+                    r2n = note
+                    break
+            if r2n < r1n:
+                raise Exception("No matching note found")
         else:
             raise Exception("Unknown operator" + self.sign)
 
-        if self.sign == "x" or self.sign == "round" or self.sign == "series" or self.sign == "money_add":
+        if self.sign == "x" or self.sign == "round" or self.sign == "series" or self.sign == "money_add" or self.sign == "money_rest":
             self.r1 = r1n
             self.r2 = r2n
         elif self.sign == ":":
@@ -222,6 +236,8 @@ class MainWidget:
                                                   self.r1 - 1 * self.r2)
         elif self.sign == "money_add":
             return "{} € + {} €".format(self.r1, self.r2).replace('.', ',')
+        elif self.sign == "money_rest":
+            return "Du bezahlst {} € mit einem {} € Schein. Rückgeld?".format(str(self.r1).replace('.', ','), self.r2)
 
         else:
             return "{} {} {}".format(str(self.r1), self.sign, str(self.r2))
@@ -265,6 +281,8 @@ class MainWidget:
             return self.r1
         elif self.sign == "money_add":
             return '{0:.2f}'.format(self.r1 + self.r2).replace('.', ',') + " €"
+        elif self.sign == "money_rest":
+            return '{0:.2f}'.format(self.r2 - self.r1).replace('.', ',') + " €"
         else:
             raise Exception("Unknown operator" + self.sign)
 
