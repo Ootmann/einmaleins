@@ -207,7 +207,7 @@ class MainWidget:
         if question_text == self.last_question:
             self.update()
 
-        rgb = colorsys.hsv_to_rgb(random.randint(0, 1000) / 1000, 86.3 / 100, 91.4 / 100)
+        rgb = colorsys.hsv_to_rgb(random.randint(0, 1000) / 1000, 70 / 100, 80 / 100)
         hex_color = '%02x%02x%02x' % (int(rgb[0] * 255), int(rgb[1] * 255), int(rgb[2] * 255))
 
         self.last_question = question_text
