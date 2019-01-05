@@ -81,6 +81,7 @@ class MainWidget:
 
         self.more_menu.add_command(label="Info", command=self.show_info)
         self.more_menu.add_command(label="Statistik", command=self.show_stats)
+        self.more_menu.add_command(label="Überspringen", command=self.update)
         self.more_menu.add_command(label="Beenden", command=sys.exit)
 
         self.mode_menu.add_checkbutton(label="Malnehmen", onvalue=True, offvalue=False,
@@ -217,6 +218,9 @@ class MainWidget:
         self.score_label.config(text="Richtig: {} Falsch: {}".format(correct, wrong))
         self.time = datetime.now()
         self.tries = 0
+
+        self.entry_field.delete(0, 'end')
+        self.entry_field.focus()
 
     # noinspection PyUnusedLocal
     def answer(self, event=None):
