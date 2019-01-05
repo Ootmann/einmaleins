@@ -42,6 +42,8 @@ class MainWidget:
     random_sign = True
     last_question = ""
     euro_notes = (5, 10, 20, 50, 100, 200, 500)
+    tries = 0
+    max_tries = 3
     stats = {}
     signs = {
         "x": "Malnehmen",
@@ -214,6 +216,7 @@ class MainWidget:
         correct, wrong = self.get_total_stats()
         self.score_label.config(text="Richtig: {} Falsch: {}".format(correct, wrong))
         self.time = datetime.now()
+        self.tries = 0
 
     # noinspection PyUnusedLocal
     def answer(self, event=None):
@@ -228,6 +231,8 @@ class MainWidget:
         now = datetime.now()
         answer_time_seconds = (now - self.time).seconds
 
+        self.tries += 1
+
         solve = self.solve()
         solve_comparision = re.sub('[^0-9,.]', '', str(solve))
         solve_comparision = solve_comparision.replace(".", ",")
@@ -240,15 +245,21 @@ class MainWidget:
                     str(solve),
                     str(answer_time_seconds)))
             self.add_stat_correct()
+            self.update()
+        elif self.tries < self.max_tries:
+            self.answer_label.config(
+                text="Schade. Die Lösung für '{}' ist nicht {}.\n\nDu kannst es noch {} mal probieren.".format(
+                    self.get_question(), answer, self.max_tries - self.tries))
+            self.add_stat_wrong()
         else:
             self.answer_label.config(
                 text="Schade. Die Lösung für '{}' ist {} und nicht {}.\n\nTipp: Du kannst schwere Aufgaben erst auf einem Blatt Papier lösen.".format(
                     self.get_question(), str(solve), answer))
             self.add_stat_wrong()
+            self.update()
 
         self.entry_field.delete(0, 'end')
         self.entry_field.focus()
-        self.update()
 
     def get_question(self):
         if self.sign == "round" and self.r2 == -1:
@@ -289,17 +300,18 @@ class MainWidget:
         if self.stats_widget is None:
             self.stats_widget = Toplevel(self.root)
             self.stats_widget.wm_title("Statistik")
-            self.stats_widget.geometry('{}x{}'.format(200, 200))
+            self.stats_widget.geometry('{}x{}'.format(300, 200))
             self.stats_widget.protocol("WM_DELETE_WINDOW", self.delete_stats_widget)
             self.stats_widget.resizable(width=False, height=False)
 
             Label(self.stats_widget, text="Aufgaben", borderwidth=1).grid(row=0, column=0)
             Label(self.stats_widget, text="Richtig", borderwidth=1).grid(row=0, column=1)
             Label(self.stats_widget, text="Falsch", borderwidth=1).grid(row=0, column=2)
+            Label(self.stats_widget, text="Versuche", borderwidth=1).grid(row=0, column=3)
 
             r = 0
             for stat in self.stats:
-                for c in range(3):
+                for c in range(4):
                     if c == 0:
                         text = self.signs[stat]
                     else:
@@ -324,15 +336,17 @@ class MainWidget:
         try:
             self.stats[self.sign]
         except KeyError:
-            self.stats[self.sign] = [0, 0]
+            self.stats[self.sign] = [0, 0, 0]
         self.stats[self.sign][0] += 1
+        self.stats[self.sign][2] += 1
 
     def add_stat_wrong(self):
         try:
             self.stats[self.sign]
         except KeyError:
-            self.stats[self.sign] = [0, 0]
+            self.stats[self.sign] = [0, 0, 0]
         self.stats[self.sign][1] += 1
+        self.stats[self.sign][2] += 1
 
     def get_total_stats(self):
         result = [0, 0]
