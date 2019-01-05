@@ -37,11 +37,22 @@ class MainWidget:
     r2 = 0
     time = datetime.now()
     infoWidget = None
+    stats_widget = None
     sign = ":"
     random_sign = True
     last_question = ""
     euro_notes = (5, 10, 20, 50, 100, 200, 500)
     stats = {}
+    signs = {
+        "x": "Malnehmen",
+        ":": "Teilen",
+        "+": "Plus",
+        "-": "Minus",
+        "round": "Runden",
+        "series": "Zahlenreihen",
+        "money_add": "Geld zusammenzählen",
+        "money_rest": "Rückgeld"
+    }
 
     def __init__(self):
         self.root = Tk()
@@ -67,6 +78,7 @@ class MainWidget:
         self.menu.add_cascade(label="Aufgaben", menu=self.mode_menu)
 
         self.more_menu.add_command(label="Info", command=self.show_info)
+        self.more_menu.add_command(label="Statistik", command=self.show_stats)
         self.more_menu.add_command(label="Beenden", command=sys.exit)
 
         self.mode_menu.add_checkbutton(label="Malnehmen", onvalue=True, offvalue=False,
@@ -136,7 +148,12 @@ class MainWidget:
             self.ask_money_add.set(True)
             self.ask_money_rest.set(True)
             self.update()
+
         self.sign = signs[random.randint(0, len(signs) - 1)]
+
+        if self.sign not in self.signs.keys():
+            raise Exception("Unknown operator" + self.sign)
+
         if self.sign == "x" or self.sign == ":":
             r1n = random.randint(1, 10)
             r2n = random.randint(1, 10)
@@ -268,10 +285,40 @@ class MainWidget:
         else:
             self.infoWidget.focus()
 
+    def show_stats(self):
+        if self.stats_widget is None:
+            self.stats_widget = Toplevel(self.root)
+            self.stats_widget.wm_title("Statistik")
+            self.stats_widget.geometry('{}x{}'.format(200, 200))
+            self.stats_widget.protocol("WM_DELETE_WINDOW", self.delete_stats_widget)
+            self.stats_widget.resizable(width=False, height=False)
+
+            Label(self.stats_widget, text="Aufgaben", borderwidth=1).grid(row=0, column=0)
+            Label(self.stats_widget, text="Richtig", borderwidth=1).grid(row=0, column=1)
+            Label(self.stats_widget, text="Falsch", borderwidth=1).grid(row=0, column=2)
+
+            r = 0
+            for stat in self.stats:
+                for c in range(3):
+                    if c == 0:
+                        text = self.signs[stat]
+                    else:
+                        text = self.stats[stat][c - 1]
+                    Label(self.stats_widget, text=text, borderwidth=1).grid(row=r + 2, column=c)
+                r += 1
+
+        else:
+            self.stats_widget.focus()
+
     def delete_info(self):
         if self.infoWidget is not None:
             self.infoWidget.destroy()
             self.infoWidget = None
+
+    def delete_stats_widget(self):
+        if self.stats_widget is not None:
+            self.stats_widget.destroy()
+            self.stats_widget = None
 
     def add_stat_correct(self):
         try:
