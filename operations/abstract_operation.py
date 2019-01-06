@@ -9,9 +9,13 @@ class AbstractOperation(ABC):
         super().__init__()
 
     @abstractmethod
-    def get_question(self, a, b):
+    def get_question(self):
         pass
 
     @abstractmethod
-    def solve(self, a, b):
+    def solve(self):
+        pass
+
+    @abstractmethod
+    def update(self):
         pass

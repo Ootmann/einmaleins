@@ -27,22 +27,20 @@ SOFTWARE.
 import colorsys
 import decimal
 import random
-from operations import *
 from datetime import datetime
 from tkinter import *
+
+from operations import *
 
 
 # noinspection SpellCheckingInspection
 class MainWidget:
-    r1 = 0
-    r2 = 0
     time = datetime.now()
     infoWidget = None
     stats_widget = None
     sign = ":"
     random_sign = True
     last_question = ""
-    euro_notes = (5, 10, 20, 50, 100, 200, 500)
     tries = 0
     max_tries = 3
     stats = {}
@@ -158,54 +156,9 @@ class MainWidget:
         if self.sign not in self.signs.keys():
             raise Exception("Unknown operator" + self.sign)
 
-        if self.sign == "x" or self.sign == ":":
-            r1n = random.randint(1, 10)
-            r2n = random.randint(1, 10)
-        elif self.sign == "+" or self.sign == "-":
-            r1n = random.randint(0, 1000)
-            r2n = random.randint(0, 1000)
-        elif self.sign == "round":
-            r1n = random.randint(0, 999)
-            r2n = random.randint(1, 2) * -1
-        elif self.sign == "series":
-            r1n = random.randint(100, 899)
-            r2n = random.randint(1, 9) * random.choice([1, -1])
-        elif self.sign == "money_add":
-            r1n = decimal.Decimal(
-                str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
-            r2n = decimal.Decimal(
-                str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
-        elif self.sign == "money_rest":
-            r1n = decimal.Decimal(
-                str(random.randint(1, 499)) + "." + str(random.randint(0, 9)) + str(random.randint(0, 9)))
-            r2n = 0
-            for note in self.euro_notes:
-                if note > r1n:
-                    r2n = note
-                    break
-            if r2n < r1n:
-                raise Exception("No matching note found")
-        else:
-            raise Exception("Unknown operator" + self.sign)
+        self.signs[self.sign].update()
 
-        if self.sign == "x" or self.sign == "round" or self.sign == "series" or self.sign == "money_add" or self.sign == "money_rest":
-            self.r1 = r1n
-            self.r2 = r2n
-        elif self.sign == ":":
-            self.r1 = r1n * r2n
-            self.r2 = r2n
-        elif self.sign == "+":
-            r12 = [max(r1n, r2n) - min(r1n, r2n), min(r1n, r2n)]
-            random.shuffle(r12)
-            self.r1 = r12[0]
-            self.r2 = r12[1]
-        elif self.sign == "-":
-            self.r1 = max(r1n, r2n)
-            self.r2 = min(r1n, r2n)
-        else:
-            raise Exception("Unknown operator" + self.sign)
-
-        question_text = self.get_question()
+        question_text = self.signs[self.sign].get_question()
         if question_text == self.last_question:
             self.update()
 
@@ -215,11 +168,13 @@ class MainWidget:
         self.last_question = question_text
         self.question_label.config(text=question_text)
         self.question_label.config(bg="#" + hex_color)
-        correct, wrong = self.get_total_stats()
-        self.score_label.config(text="Richtig: {} Falsch: {}".format(correct, wrong))
         self.time = datetime.now()
         self.tries = 0
+        self.refresh()
 
+    def refresh(self):
+        correct, wrong = self.get_total_stats()
+        self.score_label.config(text="Richtig: {} Falsch: {}".format(correct, wrong))
         self.entry_field.delete(0, 'end')
         self.entry_field.focus()
 
@@ -238,7 +193,7 @@ class MainWidget:
 
         self.tries += 1
 
-        solve = self.solve()
+        solve = self.signs[self.sign].solve()
         solve_comparision = re.sub('[^0-9,.]', '', str(solve))
         solve_comparision = solve_comparision.replace(".", ",")
         solve_comparision = solve_comparision.strip()
@@ -246,7 +201,7 @@ class MainWidget:
         if answer == solve_comparision:
             self.answer_label.config(
                 text="Toll! Die Lösung für '{}' ist {}.\n\nDas war richtig. Du hast {} Sekunden gebraucht.".format(
-                    self.get_question(),
+                    self.signs[self.sign].get_question(),
                     str(solve),
                     str(answer_time_seconds)))
             self.add_stat_correct()
@@ -254,20 +209,15 @@ class MainWidget:
         elif self.tries < self.max_tries:
             self.answer_label.config(
                 text="Schade. Die Lösung für '{}' ist nicht {}.\n\nDu kannst es noch {} mal probieren.".format(
-                    self.get_question(), answer, self.max_tries - self.tries))
+                    self.signs[self.sign].get_question(), answer, self.max_tries - self.tries))
             self.add_stat_wrong()
+            self.refresh()
         else:
             self.answer_label.config(
                 text="Schade. Die Lösung für '{}' ist {} und nicht {}.\n\nTipp: Du kannst schwere Aufgaben erst auf einem Blatt Papier lösen.".format(
-                    self.get_question(), str(solve), answer))
+                    self.signs[self.sign].get_question(), str(solve), answer))
             self.add_stat_wrong()
             self.update()
-
-        self.entry_field.delete(0, 'end')
-        self.entry_field.focus()
-
-    def get_question(self):
-        return self.signs[self.sign].get_question(self.r1, self.r2)
 
     def show_info(self):
         if self.infoWidget is None:
@@ -349,9 +299,6 @@ class MainWidget:
             result[0] += stat[0]
             result[1] += stat[1]
         return result
-
-    def solve(self):
-        return self.signs[self.sign].solve(self.r1, self.r2)
 
 
 if __name__ == '__main__':
