@@ -27,6 +27,7 @@ SOFTWARE.
 import colorsys
 import decimal
 import random
+from operations import *
 from datetime import datetime
 from tkinter import *
 
@@ -46,14 +47,14 @@ class MainWidget:
     max_tries = 3
     stats = {}
     signs = {
-        "x": "Malnehmen",
-        ":": "Teilen",
-        "+": "Plus",
-        "-": "Minus",
-        "round": "Runden",
-        "series": "Zahlenreihen",
-        "money_add": "Geld zusammenzählen",
-        "money_rest": "Rückgeld"
+        "x": multiply.Multiply(),
+        ":": divide.Divide(),
+        "+": plus.Plus(),
+        "-": minus.Minus(),
+        "round": round.Round(),
+        "series": series.Series(),
+        "money_add": money_add.MoneyAdd(),
+        "money_rest": money_rest.MoneyRest()
     }
 
     def __init__(self):
@@ -266,20 +267,7 @@ class MainWidget:
         self.entry_field.focus()
 
     def get_question(self):
-        if self.sign == "round" and self.r2 == -1:
-            return "{} auf den nächsten Zehner runden".format(self.r1)
-        elif self.sign == "round" and self.r2 == -2:
-            return "{} auf den nächsten Hunderter runden".format(self.r1)
-        elif self.sign == "series":
-            return "{} , {} , {} , {} , ?".format(self.r1 - 4 * self.r2, self.r1 - 3 * self.r2, self.r1 - 2 * self.r2,
-                                                  self.r1 - 1 * self.r2)
-        elif self.sign == "money_add":
-            return "{} € + {} €".format(self.r1, self.r2).replace('.', ',')
-        elif self.sign == "money_rest":
-            return "Du bezahlst {} € mit einem {} € Schein. Rückgeld?".format(str(self.r1).replace('.', ','), self.r2)
-
-        else:
-            return "{} {} {}".format(str(self.r1), self.sign, str(self.r2))
+        return self.signs[self.sign].get_question(self.r1, self.r2)
 
     def show_info(self):
         if self.infoWidget is None:
@@ -314,12 +302,15 @@ class MainWidget:
             Label(self.stats_widget, text="Versuche", borderwidth=1).grid(row=0, column=3)
 
             r = 0
-            for stat in self.stats:
+            for operation in self.signs:
                 for c in range(4):
                     if c == 0:
-                        text = self.signs[stat]
+                        text = self.signs[operation].description
                     else:
-                        text = self.stats[stat][c - 1]
+                        try:
+                            text = self.stats[operation][c - 1]
+                        except KeyError:
+                            text = 0
                     Label(self.stats_widget, text=text, borderwidth=1).grid(row=r + 2, column=c)
                 r += 1
 
@@ -360,24 +351,7 @@ class MainWidget:
         return result
 
     def solve(self):
-        if self.sign == "x":
-            return int(self.r1 * self.r2)
-        elif self.sign == ":":
-            return int(self.r1 / self.r2)
-        elif self.sign == "+":
-            return int(self.r1 + self.r2)
-        elif self.sign == "-":
-            return int(self.r1 - self.r2)
-        elif self.sign == "round":
-            return int(round(self.r1, self.r2))
-        elif self.sign == "series":
-            return self.r1
-        elif self.sign == "money_add":
-            return '{0:.2f}'.format(self.r1 + self.r2).replace('.', ',') + " €"
-        elif self.sign == "money_rest":
-            return '{0:.2f}'.format(self.r2 - self.r1).replace('.', ',') + " €"
-        else:
-            raise Exception("Unknown operator" + self.sign)
+        return self.signs[self.sign].solve(self.r1, self.r2)
 
 
 if __name__ == '__main__':
